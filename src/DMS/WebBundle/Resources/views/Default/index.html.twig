@@ -1,0 +1,17 @@
+{% extends 'DMSWebBundle::template.html.twig' %}
+
+{% block body %}
+Im Moment wird sicher was berechnet
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script type="text/javascript">
+        $(function() {
+            // Handler for .ready() called.
+            console.log("Start with first Instruction");
+            getInstructions();
+        });
+
+    </script>
+{% endblock %}
