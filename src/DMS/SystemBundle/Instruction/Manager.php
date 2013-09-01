@@ -36,8 +36,15 @@ class Manager
      * @return Instruction
      */
     public function getNextInstruction() {
-        $inst = new Instruction(1);
-        $inst->setEquation('4+3-2')->setStep(1);
+        $repo = $this->em->getRepository('DMSSystemBundle:Task');
+        $task = $repo->findNextTask();
+        if ($task != null) {
+            $inst = new Instruction($task->getId());
+            $inst->setEquation($task->getMath())->setStep($task->getStep());
+        } else {
+            $inst = new Instruction(0);
+            $inst->setEquation('1+1')->setStep(0);
+        }
 
         return $inst;
     }

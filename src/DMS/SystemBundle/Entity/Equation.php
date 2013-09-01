@@ -32,7 +32,7 @@ class Equation
     /**
      * @var ArrayCollection
      *
-     * @ORM\ManyToOne(targetEntity="Task", inversedBy="equation")
+     * @ORM\OneToMany(targetEntity="Task", mappedBy="equation")
      */
     private $tasks;
 

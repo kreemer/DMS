@@ -24,7 +24,7 @@ class Result
     /**
      * @var Task
      *
-     * @ORM\OneToMany(targetEntity="Task", mappedBy="results")
+     * @ORM\ManyToOne(targetEntity="Task", inversedBy="results")
      */
     private $task;
 

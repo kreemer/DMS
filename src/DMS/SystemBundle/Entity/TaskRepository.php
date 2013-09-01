@@ -12,4 +12,14 @@ use Doctrine\ORM\EntityRepository;
  */
 class TaskRepository extends EntityRepository
 {
+    public function findNextTask() {
+        $qb = $this->getEntityManager()->createQueryBuilder();
+        $query = $qb->select('t')
+            ->from('DMSSystemBundle:Task', 't')
+            ->where('t.calculated = 0')
+            ->orderBy('t.id');
+
+        $tasks = $query->getQuery()->getResult();
+        return current($tasks);
+    }
 }

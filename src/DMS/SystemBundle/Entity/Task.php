@@ -25,7 +25,7 @@ class Task
     /**
      * @var Equation
      *
-     * @ORM\OneToMany(targetEntity="Equation", mappedBy="tasks")
+     * @ORM\ManyToOne(targetEntity="Equation", inversedBy="tasks")
      */
     private $equation;
 
@@ -44,9 +44,16 @@ class Task
     private $step;
 
     /**
+     * @var bool
+     *
+     * @ORM\Column(type="boolean")
+     */
+    private $calculated = false;
+
+    /**
      * @var ArrayCollection
      *
-     * @ORM\ManyToOne(targetEntity="Result", inversedBy="task")
+     * @ORM\OneToMany(targetEntity="Result", mappedBy="task")
      */
     private $results;
 
@@ -132,5 +139,25 @@ class Task
     public function getEquation()
     {
         return $this->equation;
+    }
+
+    /**
+     * @param boolean $calculated
+     *
+     * @return Task
+     */
+    public function setCalculated($calculated)
+    {
+        $this->calculated = $calculated;
+
+        return $this;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function getCalculated()
+    {
+        return $this->calculated;
     }
 }
