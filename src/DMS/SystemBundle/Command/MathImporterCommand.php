@@ -11,6 +11,7 @@
 namespace DMS\SystemBundle\Command;
 
 use DMS\SystemBundle\Entity\Equation;
+use DMS\SystemBundle\Lexer;
 use DMS\SystemBundle\Parser;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputArgument;
@@ -48,25 +49,30 @@ class MathImporterCommand extends ContainerAwareCommand
             $output->writeln('start import of "' . $path . '"');
         }
 
+
         $content = file_get_contents($path);
-        $parser = new Parser();
-        try {
-            $tasks = $parser->parseContent($content);
-        } catch(Parser\Exception $e) {
-            throw new \Exception('Parse Exception: ' . $e->getMessage() . ' (' . $e->getCode() . '/' . $e->getLine() . ')');
-        }
+        $lines = explode(PHP_EOL, $content);
+        $keywords = Lexer::run($lines);
+        var_dump($keywords);
+
+        /*        $parser = new Parser();
+                try {
+                    $tasks = $parser->parseContent($content);
+                } catch(Parser\Exception $e) {
+                    throw new \Exception('Parse Exception: ' . $e->getMessage() . ' (' . $e->getCode() . '/' . $e->getLine() . ')');
+                }
 
 
-        $em = $this->getContainer()->get('doctrine')->getManager();
-        $equation = new Equation();
-        $equation->setFile($path);
-        !$dryrun ? $em->persist($equation) : null;
-        foreach ($tasks as $task) {
-            $task->setEquation($equation);
+                $em = $this->getContainer()->get('doctrine')->getManager();
+                $equation = new Equation();
+                $equation->setFile($path);
+                !$dryrun ? $em->persist($equation) : null;
+                foreach ($tasks as $task) {
+                    $task->setEquation($equation);
 
-            !$dryrun ? $em->persist($task) : null;
-        }
-        !$dryrun ? $em->flush() : null;
+                    !$dryrun ? $em->persist($task) : null;
+                }
+                !$dryrun ? $em->flush() : null;*/
         $output->writeln('<info>Import was successfully</info>');
     }
 }

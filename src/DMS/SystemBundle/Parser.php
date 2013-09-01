@@ -19,6 +19,7 @@ use DMS\SystemBundle\Entity\Task;
  */
 class Parser
 {
+
     /**
      * parse the content and return all tasks
      *
@@ -38,4 +39,5 @@ class Parser
 
         return $return;
     }
+
 }
