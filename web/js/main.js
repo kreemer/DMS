@@ -5,7 +5,7 @@ function getInstructions() {
         console.log("Load was performed.");
         var result = math.eval(data.math);
         sendResult(result, data.step, data.id);
-        window.setTimeout(getInstructions, 3000);
+        window.setTimeout(getInstructions, 500);
     });
 }
 function sendResult(data, step, id) {
