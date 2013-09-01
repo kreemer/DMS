@@ -1,4 +1,9 @@
+dms_processing = true;
 function getInstructions() {
+    if (!dms_processing) {
+        console.log('won`t do anything, master!');
+        return;
+    }
     console.log('getting instructions');
     var route = Routing.generate('instruction');
     $.getJSON(route, function(data) {
