@@ -20,10 +20,10 @@ class Lexer
     protected static $terminals = array(
         '/^(\ )+/'                          =>      'T_WHITESPACE',
         '/^([0-9])+/'                       =>      'T_VALUES',
-        '/^sin\([A-Za-z0-9]+\)/'                  =>      'T_SIN',
+        '/^sin\(([A-Za-z0-9]+)\)/'                  =>      'T_SIN',
         '/^cos\((A-Za-z0-9)+\)/'                  =>      'T_COS',
         '/^tan\((A-Za-z0-9)+\)/'                  =>      'T_TAN',
-        '#^for\([A-Za-z];[0-9]+;[0-9]+\)#'   =>      'T_FOR_LOOP',
+        '#^for\(([A-Za-z]);([0-9]+);([0-9]+)\)#'   =>      'T_FOR_LOOP',
         '/^(\[A-Za-z])+/'                    =>      'T_VAR',
         '/^\+/'                             =>      'T_PLUS',
         '/^\-/'                             =>      'T_MINUS',
@@ -34,6 +34,7 @@ class Lexer
         '#^\)#'                             =>      'T_END_BLOCK',
         '#^\{#'                             =>      'T_CURL_BLOCK',
         '#^\}#'                             =>      'T_END_CURL_BLOCK',
+        PHP_EOL                             =>      'T_NEWLINE',
     );
 
     /**
@@ -55,8 +56,9 @@ class Lexer
                     throw new Parser\Exception("Unable to parse line at " . ($number + 1) . ".");
                 }
                 $tokens[] = $result;
-                $offset += strlen($result['match']);
+                $offset += strlen($result['match'][0]);
             }
+            $tokens[] = array('token' => 'T_NEWLINE');
         }
 
         return $tokens;
@@ -75,11 +77,9 @@ class Lexer
         $string = substr($line, $offset);
 
         foreach (self::$terminals as $pattern => $name) {
-            var_dump($pattern);
-            var_dump($string);
             if (preg_match($pattern, $string, $matches)) {
                 return array(
-                    'match' => isset($matches[1]) ? $matches[1] : $matches[0],
+                    'match' => $matches,
                     'token' => $name,
                     'line' => $number+1
                 );

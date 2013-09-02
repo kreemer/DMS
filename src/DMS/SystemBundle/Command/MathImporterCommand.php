@@ -54,6 +54,9 @@ class MathImporterCommand extends ContainerAwareCommand
         $lines = explode(PHP_EOL, $content);
         $keywords = Lexer::run($lines);
         var_dump($keywords);
+        $tasks = Parser::run($keywords);
+        var_dump($tasks);
+
 
         /*        $parser = new Parser();
                 try {
