@@ -11,6 +11,7 @@
 namespace DMS\SystemBundle;
 
 use DMS\SystemBundle\Entity\Task;
+use DMS\SystemBundle\Parser\Variable;
 
 /**
  * Class Parser
@@ -30,8 +31,8 @@ class Parser
     static public function run($keywords) {
         $tasks = array();
         $task = new Task();
-        $text = '';
         foreach ($keywords as $key => $keyword) {
+            $task->setStep($key);
             switch ($keyword['token']) {
                 case 'T_FOR_LOOP':
                     $forTasks = array();
@@ -61,13 +62,8 @@ class Parser
                         }
                     }
                     for ($i = $keyword['match'][2]; $i <= $keyword['match'][3]; $i++) {
-                        $tmpTasks = self::run($forKeywords);
-                        foreach ($tmpTasks as $tmpTask) {
-                            $content = $tmpTask->getMath();
-                            $content = str_replace($keyword['match'][1], $i, $content);
-                            $tmpTask->setMath($content);
-                            $forTasks[] = $tmpTask;
-                        }
+                        $forTasks = self::run($forKeywords);
+                        self::replaceVars($forTasks, array($keyword['match'][1] => $i));
                     }
                     $tasks = array_merge($tasks, $forTasks);
                     $tasks = array_merge($tasks, self::run($breakKeywords));
@@ -84,12 +80,51 @@ class Parser
                     $tasks[] = $task;
                     $task = new Task();
                     break;
+                case 'T_VAR':
+                    $vars[] = $keyword['matches'][0];
+                case 'T_VAR_SET':
+                    for ($u = $key+1; $u < count($keywords); $u++) {
+                        switch ($keywords[$u]['token']) {
+                            case 'T_NEWLINE':
+
+                                break;
+                            default:
+
+                        }
+                    }
+
+
                 default:
                     throw new Parser\Exception('Unrecognized keyword (' . $keyword['token'] . ')');
 
             }
         }
 
-        return $tasks;
+        //Cleanup generated tasks
+        $returnTasks = array();
+        foreach ($tasks as $task) {
+            if ($task->getMath() == '') {
+                continue;
+            }
+            $returnTasks[] = $task;
+        }
+
+        return $returnTasks;
+    }
+
+    /**
+     * replace the variables within the tasks
+     *
+     * @param       $tasks
+     * @param array $vars
+     *
+     * @return void
+     */
+    static protected function replaceVars($tasks, $vars = array()) {
+        foreach ($tasks as $task) {
+            foreach ($vars as $name => $value) {
+                $task->setMath(str_replace($name, $value, $task->getMath()));
+            }
+        }
     }
 }

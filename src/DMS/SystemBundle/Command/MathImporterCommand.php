@@ -49,33 +49,32 @@ class MathImporterCommand extends ContainerAwareCommand
             $output->writeln('start import of "' . $path . '"');
         }
 
-
+        $tasks = array();
         $content = file_get_contents($path);
         $lines = explode(PHP_EOL, $content);
-        $keywords = Lexer::run($lines);
-        var_dump($keywords);
-        $tasks = Parser::run($keywords);
-        var_dump($tasks);
+        try {
+            $keywords = Lexer::run($lines);
+            $tasks = Parser::run($keywords);
+        } catch(Parser\Exception $e) {
+            $output->writeln('<error>there was an error while parsing :(</error>');
+            $output->writeln('<error>' . $e->getMessage() . ' (' . $e->getFile() . ':' . $e->getLine() . ')</error>');
+            return;
+        }
+
+        if (count($tasks) == 0) {
+            $output->writeln('<error>No exception happend, but the parser couldnt find a single task!</error>');
+            return;
+        }
 
 
-        /*        $parser = new Parser();
-                try {
-                    $tasks = $parser->parseContent($content);
-                } catch(Parser\Exception $e) {
-                    throw new \Exception('Parse Exception: ' . $e->getMessage() . ' (' . $e->getCode() . '/' . $e->getLine() . ')');
-                }
-
-
-                $em = $this->getContainer()->get('doctrine')->getManager();
-                $equation = new Equation();
-                $equation->setFile($path);
-                !$dryrun ? $em->persist($equation) : null;
-                foreach ($tasks as $task) {
-                    $task->setEquation($equation);
-
-                    !$dryrun ? $em->persist($task) : null;
-                }
-                !$dryrun ? $em->flush() : null;*/
+        $em = $this->getContainer()->get('doctrine')->getManager();
+        $equation = new Equation();
+        $equation->setFile($path);
+        !$dryrun ? $em->persist($equation) : null;
+        foreach ($tasks as $task) {
+            !$dryrun ? $em->persist($task) : null;
+        }
+        !$dryrun ? $em->flush() : null;
         $output->writeln('<info>Import was successfully</info>');
     }
 }

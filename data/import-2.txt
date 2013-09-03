@@ -1,3 +1,4 @@
-for(a;0;90) {
-sin(a)
+for(a;0;100) {
+b=a/100*Math.PI
+sin(b)
 }
