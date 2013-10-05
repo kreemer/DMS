@@ -1,4 +1,5 @@
-for(a;0;100) {
-b=a/100*Math.PI
-sin(b)
+$b = 1
+for($a;0;100) {
+$b = $b+3
+sin($a/100*pi)
 }

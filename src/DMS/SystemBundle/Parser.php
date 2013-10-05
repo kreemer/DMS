@@ -30,8 +30,8 @@ class Parser
      */
     static public function run($keywords) {
         $tasks = array();
-        $task = new Task();
         foreach ($keywords as $key => $keyword) {
+            $task = new Task();
             $task->setStep($key);
             switch ($keyword['token']) {
                 case 'T_FOR_LOOP':
@@ -64,8 +64,8 @@ class Parser
                     for ($i = $keyword['match'][2]; $i <= $keyword['match'][3]; $i++) {
                         $forTasks = self::run($forKeywords);
                         self::replaceVars($forTasks, array($keyword['match'][1] => $i));
+                        $tasks = array_merge($tasks, $forTasks);
                     }
-                    $tasks = array_merge($tasks, $forTasks);
                     $tasks = array_merge($tasks, self::run($breakKeywords));
 
                     return $tasks;
@@ -81,23 +81,27 @@ class Parser
                     $task = new Task();
                     break;
                 case 'T_VAR':
-                    $vars[] = $keyword['matches'][0];
+                    $vars[] = $keyword['match'][0];
+                    break;
                 case 'T_VAR_SET':
+                    $text = '';
                     for ($u = $key+1; $u < count($keywords); $u++) {
                         switch ($keywords[$u]['token']) {
                             case 'T_NEWLINE':
-
+                                $task = new Task();
+                                $task->setMath($text);
                                 break;
                             default:
-
+                                $text .= $keyword['match'][0];
+                                break;
                         }
                     }
-
-
+                    break;
                 default:
                     throw new Parser\Exception('Unrecognized keyword (' . $keyword['token'] . ')');
 
             }
+            $tasks[] = $task;
         }
 
         //Cleanup generated tasks
