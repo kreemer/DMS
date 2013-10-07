@@ -23,10 +23,10 @@ class Lexer
         '/^sin\((.+)\)/'                            =>      'T_SIN',
         '/^cos\((A-Za-z0-9)+\)/'                    =>      'T_COS',
         '/^tan\((A-Za-z0-9)+\)/'                    =>      'T_TAN',
-        '#^for\((\$[A-Za-z]);([0-9]+);([0-9]+)\)#'    =>      'T_FOR_LOOP',
-        '#^Math.(PI)#'                              =>      'T_MATH_KEYWORD',
-        '/^(\$[A-Za-z])+=/'                          =>      'T_VAR_SET',
-        '/^(\$[A-Za-z])+/'                           =>      'T_VAR',
+        '#^for\((\$[A-Za-z]);([0-9]+);([0-9]+)\)#'  =>      'T_FOR_LOOP',
+        '#^Math.PI#'                                =>      'T_MATH_KEYWORD_PI',
+        '/^(\$[A-Za-z])+=(.*)$/'                    =>      'T_VAR_SET',
+        '/^(\$[A-Za-z])+/'                          =>      'T_VAR',
         '/^\+/'                                     =>      'T_PLUS',
         '/^\-/'                                     =>      'T_MINUS',
         '/^\*/'                                     =>      'T_MULTIPLICATION',
@@ -56,8 +56,11 @@ class Lexer
                 if ($result === false) {
                     throw new Parser\Exception("Unable to parse line at " . ($number + 1) . ".");
                 }
-                $tokens[] = $result;
                 $offset += strlen($result['match'][0]);
+                if ($result['token'] == 'T_WHITESPACE') {
+                    continue;
+                }
+                $tokens[] = $result;
             }
             $tokens[] = array('token' => 'T_NEWLINE');
         }

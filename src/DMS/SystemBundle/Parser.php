@@ -11,7 +11,12 @@
 namespace DMS\SystemBundle;
 
 use DMS\SystemBundle\Entity\Task;
+use DMS\SystemBundle\Parser\Exception;
 use DMS\SystemBundle\Parser\Variable;
+use DMS\SystemBundle\Token\Block;
+use DMS\SystemBundle\Token\Line;
+use DMS\SystemBundle\Token\Loop;
+use DMS\SystemBundle\Token\Root;
 
 /**
  * Class Parser
@@ -28,92 +33,161 @@ class Parser
      *
      * @return array
      */
-    static public function run($keywords) {
+    static public function run($keywords)
+    {
         $tasks = array();
-        foreach ($keywords as $key => $keyword) {
-            $task = new Task();
-            $task->setStep($key);
+        $rootToken = self::prepareTokens($keywords);
+        $tokens = $rootToken->getTokens();
+        foreach ($tokens as $step => $token) {
+            /** @var $token Token\Collection */
+            if ($token instanceof Token\Loop) {
+                /** @var $token Token\Loop */
+                $u = $token->getStart();
+                while($u < $token->getEnd()) {
+                    $lines = $token->getLines();
+                    foreach ($lines as $line) {
+                        $task = new Task();
+                        $task->setStep($step);
+                        $task->setMath(self::parseLine($line, array($token->getLoopVar() => $u)));
+                        $tasks[] = $task;
+                    }
+                    $u = $u + $token->getStep();
+                }
+            } else {
+                $lines = $token->getLines();
+                foreach ($lines as $line) {
+                    $task = new Task();
+                    $task->setStep($step);
+                    $task->setMath(self::parseLine($line));
+                    $tasks[] = $task;
+                }
+            }
+        }
+
+        var_dump($tasks); die();
+
+        return $tasks;
+    }
+
+    /**
+     * prepare the tokens
+     *
+     * @param $keywords
+     *
+     * @return Root
+     * @throws Parser\Exception
+     */
+    static public function prepareTokens($keywords)
+    {
+        $root = new Root();
+        $block = new Block();
+        $line = new Line();
+
+        $root->addToken($block);
+        $block->addLine($line);
+
+        $actualBlock = $block;
+        foreach ($keywords as $keyword) {
             switch ($keyword['token']) {
                 case 'T_FOR_LOOP':
-                    $forTasks = array();
-                    $breakKeywords = array();
-                    $forKeywords = array();
-                    $state = 0;
-                    $out = false;
-                    for ($u = $key+1; $u < count($keywords); $u++) {
-                        switch ($keywords[$u]['token']) {
-                            case 'T_WHITESPACE':
-                                $forKeywords[] = $keywords[$u];
-                                break;
-                            case 'T_CURL_BLOCK':
-                                $state++;
-                                break;
-                            case 'T_END_CURL_BLOCK':
-                                $state--;
-                                break;
-                            default:
-                                if ($state > 0 && !$out) {
-                                    $forKeywords[] = $keywords[$u];
-                                }
-                                if ($state == 0) {
-                                    $out = true;
-                                    $breakKeywords[] = $keywords[$u];
-                                }
-                        }
+                    $loop = new Loop('$a', 0, 10, 1);
+                    $root->addToken($loop);
+                    $line = new Line();
+                    $loop->addLine($line);
+                    $actualBlock = $loop;
+                    break;
+                case 'T_CURL_BLOCK':
+                    if (!$actualBlock instanceof Loop) {
+                        throw new Exception('I should be in a loop, but cant find that thing');
                     }
-                    for ($i = $keyword['match'][2]; $i <= $keyword['match'][3]; $i++) {
-                        $forTasks = self::run($forKeywords);
-                        self::replaceVars($forTasks, array($keyword['match'][1] => $i));
-                        $tasks = array_merge($tasks, $forTasks);
+                    break;
+                case 'T_END_CURL_BLOCK':
+                    if (!$actualBlock instanceof Loop) {
+                        throw new Exception('I should be in a loop, but cant find that thing');
                     }
-                    $tasks = array_merge($tasks, self::run($breakKeywords));
+                    $block = new Block();
+                    $line = new Line();
 
-                    return $tasks;
-                    break;
-                case 'T_WHITESPACE':
-                    /** Do nothing */
-                    break;
-                case 'T_SIN':
-                    $task->setMath(trim($task->getMath() . ' sin(' . $keyword['match'][1] . ')'));
-                    break;
-                case 'T_NEWLINE':
-                    $tasks[] = $task;
-                    $task = new Task();
-                    break;
-                case 'T_VAR':
-                    $vars[] = $keyword['match'][0];
+                    $root->addToken($block);
+                    $block->addLine($line);
+
+                    $actualBlock = $block;
                     break;
                 case 'T_VAR_SET':
-                    $text = '';
-                    for ($u = $key+1; $u < count($keywords); $u++) {
-                        switch ($keywords[$u]['token']) {
-                            case 'T_NEWLINE':
-                                $task = new Task();
-                                $task->setMath($text);
-                                break;
-                            default:
-                                $text .= $keyword['match'][0];
-                                break;
-                        }
+                    $actualBlock->addVar($keyword['match'][1], $keyword['match'][2]);
+                    break;
+                case 'T_NEWLINE':
+                    $line = new Line();
+                    $actualBlock->addLine($line);
+                    break;
+                default:
+                    $line->addKeyword($keyword);
+            }
+        }
+        $root->cleanUp();
+
+        return $root;
+    }
+
+    /**
+     * parse line to math equations
+     *
+     * @param Line  $line
+     * @param array $loopVars
+     *
+     * @return string
+     * @throws Parser\Exception
+     */
+    static protected function parseLine(Line $line, $loopVars = array())
+    {
+        $keywords = $line->getKeywords();
+        $text = '';
+        foreach ($keywords as $keyword) {
+            echo $keyword['token'];
+            switch ($keyword['token']) {
+                case 'T_VALUES':
+                    $text .= $keyword['match'][0];
+                    break;
+                case 'T_MULTIPLICATION':
+                    $text .= '*';
+                    break;
+                case 'T_DIVISION':
+                    $text .= '/';
+                    break;
+                case 'T_PLUS':
+                    $text .= '+';
+                    break;
+                case 'T_MINUS':
+                    $text .= '-';
+                    break;
+                case 'T_MATH_KEYWORD_PI':
+                    $text .= 'Pi';
+                    break;
+                case 'T_SIN':
+                    $text .= 'sin(' . $keyword['match'][1] . ')';
+                    break;
+                case 'T_COS':
+                    $text .= 'cos(' . $keyword['match'][1] . ')';
+                    break;
+                case 'T_TAN':
+                    $text .= 'tan(' . $keyword['match'][1] . ')';
+                    break;
+                case 'T_VAR':
+                    $vars = $line->getParent()->getVars();
+                    if (array_key_exists($keyword['match'][1], $vars)) {
+                        $text .= $vars[$keyword['match'][1]];
+                    } elseif(array_key_exists($keyword['match'][1], $loopVars)) {
+                        $text .= $loopVars[$keyword['match'][1]];
+                    } else {
+                        throw new Exception('Var (' . $keyword['match'][1] . ') not recognized');
                     }
                     break;
                 default:
-                    throw new Parser\Exception('Unrecognized keyword (' . $keyword['token'] . ')');
-
+                    throw new Exception('Unrecognized keyword (' . $keyword['token'] . ')');
             }
-            $tasks[] = $task;
         }
 
-        //Cleanup generated tasks
-        $returnTasks = array();
-        foreach ($tasks as $task) {
-            if ($task->getMath() == '') {
-                continue;
-            }
-            $returnTasks[] = $task;
-        }
-
-        return $returnTasks;
+        return $text;
     }
 
     /**
@@ -124,7 +198,8 @@ class Parser
      *
      * @return void
      */
-    static protected function replaceVars($tasks, $vars = array()) {
+    static protected function replaceVars($tasks, $vars = array())
+    {
         foreach ($tasks as $task) {
             foreach ($vars as $name => $value) {
                 $task->setMath(str_replace($name, $value, $task->getMath()));
