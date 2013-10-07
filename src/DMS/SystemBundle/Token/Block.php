@@ -11,7 +11,7 @@
 namespace DMS\SystemBundle\Token;
 
 
-class Block extends Collection implements Token
+class Block extends Collection
 {
 
 }

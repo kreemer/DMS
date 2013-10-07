@@ -66,6 +66,11 @@ class MathImporterCommand extends ContainerAwareCommand
             return;
         }
 
+        foreach ($tasks as $key => $task) {
+            if ($input->getOption('verbose')) {
+                $output->writeln('<info>Task ' . $key . ':[' . $task->getMath() . ']</info>');
+            }
+        }
 
         $em = $this->getContainer()->get('doctrine')->getManager();
         $equation = new Equation();
@@ -75,6 +80,14 @@ class MathImporterCommand extends ContainerAwareCommand
             !$dryrun ? $em->persist($task) : null;
         }
         !$dryrun ? $em->flush() : null;
-        $output->writeln('<info>Import was successfully</info>');
+
+        if ($input->getOption('verbose') && !$dryrun) {
+            $output->writeln('<info>Imported ' . count($tasks) . ' tasks</info>');
+        }
+        if (!$dryrun) {
+            $output->writeln('<info>Import was successfully</info>');
+        } else {
+            $output->writeln('<info>Parser couldn`t find any problems</info>');
+        }
     }
 }

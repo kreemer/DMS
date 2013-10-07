@@ -11,21 +11,21 @@
 namespace DMS\SystemBundle\Token;
 
 
-class Line extends Keyword implements Token
+class Line
 {
     /**
-     * @var Block
+     * @var Collection
      */
     protected $parent;
 
     /**
-     * @param Collection $block
+     * @param Collection $collection
      *
      * @return Line
      */
-    public function setParent(Collection $block)
+    public function setParent(Collection $collection)
     {
-        $this->parent = $block;
+        $this->parent = $collection;
 
         return $this;
     }
@@ -36,5 +36,49 @@ class Line extends Keyword implements Token
     public function getParent()
     {
         return $this->parent;
+    }
+
+    /**
+     * @var array
+     */
+    private $keywords = array();
+
+    /**
+     * @param array $keywords
+     *
+     * @return Token
+     */
+    public function setKeywords($keywords)
+    {
+        $this->keywords = $keywords;
+
+        return $this;
+    }
+
+    /**
+     * @param array $keyword
+     *
+     * @return Token
+     */
+    public function addKeyword($keyword)
+    {
+        $this->keywords[] = $keyword;
+
+        return $this;
+    }
+    /**
+     * @return array
+     */
+    public function getKeywords()
+    {
+        return $this->keywords;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isEmpty()
+    {
+        return count($this->keywords) == 0;
     }
 }

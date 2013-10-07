@@ -54,7 +54,7 @@ class Lexer
             while ($offset < strlen($line)) {
                 $result = self::match($line, $number, $offset);
                 if ($result === false) {
-                    throw new Parser\Exception("Unable to parse line at " . ($number + 1) . ".");
+                    throw new Parser\Exception('Unable to parse line at ' . ($number + 1));
                 }
                 $offset += strlen($result['match'][0]);
                 if ($result['token'] == 'T_WHITESPACE') {

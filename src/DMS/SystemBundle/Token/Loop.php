@@ -15,7 +15,7 @@ namespace DMS\SystemBundle\Token;
  *
  * @package DMS\SystemBundle\Token
  */
-class Loop extends Collection implements Token
+class Loop extends Collection
 {
     /**
      * @var string
@@ -42,12 +42,6 @@ class Loop extends Collection implements Token
      */
     protected $lines = array();
 
-    /**
-     * @param     $loopVar
-     * @param     $start
-     * @param     $end
-     * @param int $step
-     */
     function __construct($loopVar, $start, $end, $step = 1)
     {
         $this->loopVar = $loopVar;

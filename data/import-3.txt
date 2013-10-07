@@ -1,0 +1,4 @@
+$c=5
+for($a;0;5) {
+sin(Math.PI / $c * $a)
+}

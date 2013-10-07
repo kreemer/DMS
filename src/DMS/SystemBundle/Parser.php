@@ -12,7 +12,7 @@ namespace DMS\SystemBundle;
 
 use DMS\SystemBundle\Entity\Task;
 use DMS\SystemBundle\Parser\Exception;
-use DMS\SystemBundle\Parser\Variable;
+use DMS\SystemBundle\Lexer;
 use DMS\SystemBundle\Token\Block;
 use DMS\SystemBundle\Token\Line;
 use DMS\SystemBundle\Token\Loop;
@@ -35,36 +35,53 @@ class Parser
      */
     static public function run($keywords)
     {
+        $root = self::prepareTokens($keywords);
+        $tasks = self::runCollection($root);
+
+        return $tasks;
+    }
+
+    static protected function runCollection($collection, $step = 0)
+    {
         $tasks = array();
-        $rootToken = self::prepareTokens($keywords);
-        $tokens = $rootToken->getTokens();
-        foreach ($tokens as $step => $token) {
-            /** @var $token Token\Collection */
-            if ($token instanceof Token\Loop) {
-                /** @var $token Token\Loop */
-                $u = $token->getStart();
-                while($u < $token->getEnd()) {
-                    $lines = $token->getLines();
-                    foreach ($lines as $line) {
-                        $task = new Task();
-                        $task->setStep($step);
-                        $task->setMath(self::parseLine($line, array($token->getLoopVar() => $u)));
-                        $tasks[] = $task;
-                    }
-                    $u = $u + $token->getStep();
-                }
-            } else {
-                $lines = $token->getLines();
+        /** @var $collection Token\Collection */
+        if ($collection instanceof Token\Loop) {
+            /** @var $collection Token\Loop */
+            $u = $collection->getStart();
+            while($u <= $collection->getEnd()) {
+                $lines = $collection->getLines();
+                $collection->setVar($collection->getLoopVar(), $u);
                 foreach ($lines as $line) {
                     $task = new Task();
                     $task->setStep($step);
-                    $task->setMath(self::parseLine($line));
+                    $text = self::parseLine($line);
+                    if ($text != '') {
+                        // this line was just a T_VAR_SET
+                        $task->setMath($text);
+                        $tasks[] = $task;
+                    }
+                }
+                $u = $u + $collection->getStep();
+            }
+        } else {
+            /** @var $collection Token\Block */
+            $lines = $collection->getLines();
+            foreach ($lines as $line) {
+                $task = new Task();
+                $task->setStep($step);
+                $text = self::parseLine($line);
+                if ($text != '') {
+                    // this line was just a T_VAR_SET
+                    $task->setMath($text);
                     $tasks[] = $task;
                 }
             }
         }
 
-        var_dump($tasks); die();
+        $collections = $collection->getChildren();
+        foreach ($collections as $collection) {
+            $tasks = array_merge($tasks, self::runCollection($collection, $step++));
+        }
 
         return $tasks;
     }
@@ -74,51 +91,41 @@ class Parser
      *
      * @param $keywords
      *
-     * @return Root
+     * @return Token\Collection
      * @throws Parser\Exception
      */
     static public function prepareTokens($keywords)
     {
-        $root = new Root();
-        $block = new Block();
+        $root = $block = new Block();
         $line = new Line();
 
-        $root->addToken($block);
         $block->addLine($line);
 
-        $actualBlock = $block;
         foreach ($keywords as $keyword) {
             switch ($keyword['token']) {
                 case 'T_FOR_LOOP':
-                    $loop = new Loop('$a', 0, 10, 1);
-                    $root->addToken($loop);
+                    $block = $block->addChild(
+                        new Loop(
+                            $keyword['match'][1], $keyword['match'][2], $keyword['match'][3], 1
+                        )
+                    );
                     $line = new Line();
-                    $loop->addLine($line);
-                    $actualBlock = $loop;
+                    $block->addLine($line);
                     break;
                 case 'T_CURL_BLOCK':
-                    if (!$actualBlock instanceof Loop) {
+                    if (!$block instanceof Loop) {
                         throw new Exception('I should be in a loop, but cant find that thing');
                     }
                     break;
                 case 'T_END_CURL_BLOCK':
-                    if (!$actualBlock instanceof Loop) {
+                    if (!$block instanceof Loop) {
                         throw new Exception('I should be in a loop, but cant find that thing');
                     }
-                    $block = new Block();
-                    $line = new Line();
-
-                    $root->addToken($block);
-                    $block->addLine($line);
-
-                    $actualBlock = $block;
-                    break;
-                case 'T_VAR_SET':
-                    $actualBlock->addVar($keyword['match'][1], $keyword['match'][2]);
+                    $block = $block->getParent();
+                    $line = $block->addLine(new Line());
                     break;
                 case 'T_NEWLINE':
-                    $line = new Line();
-                    $actualBlock->addLine($line);
+                    $line = $block->addLine(new Line());
                     break;
                 default:
                     $line->addKeyword($keyword);
@@ -130,20 +137,18 @@ class Parser
     }
 
     /**
-     * parse line to math equations
+     * parse a line to math equations
      *
-     * @param Line  $line
-     * @param array $loopVars
+     * @param Line $line
      *
      * @return string
      * @throws Parser\Exception
      */
-    static protected function parseLine(Line $line, $loopVars = array())
+    static protected function parseLine(Line $line)
     {
         $keywords = $line->getKeywords();
         $text = '';
         foreach ($keywords as $keyword) {
-            echo $keyword['token'];
             switch ($keyword['token']) {
                 case 'T_VALUES':
                     $text .= $keyword['match'][0];
@@ -164,23 +169,26 @@ class Parser
                     $text .= 'Pi';
                     break;
                 case 'T_SIN':
-                    $text .= 'sin(' . $keyword['match'][1] . ')';
+                    $text .= 'sin(' . self::parseLineBlock($keyword['match'][1], $line->getParent()) . ')';
                     break;
                 case 'T_COS':
-                    $text .= 'cos(' . $keyword['match'][1] . ')';
+                    $text .= 'cos(' . self::parseLineBlock($keyword['match'][1], $line->getParent()) . ')';
                     break;
                 case 'T_TAN':
-                    $text .= 'tan(' . $keyword['match'][1] . ')';
+                    $text .= 'tan(' . self::parseLineBlock($keyword['match'][1], $line->getParent()) . ')';
+                    break;
+                case 'T_VAR_SET':
+                    $line->getParent()->setVar(
+                        $keyword['match'][1],
+                        self::parseLineBlock($keyword['match'][2], $line->getParent())
+                    );
                     break;
                 case 'T_VAR':
-                    $vars = $line->getParent()->getVars();
-                    if (array_key_exists($keyword['match'][1], $vars)) {
-                        $text .= $vars[$keyword['match'][1]];
-                    } elseif(array_key_exists($keyword['match'][1], $loopVars)) {
-                        $text .= $loopVars[$keyword['match'][1]];
-                    } else {
+                    $hasVar = $line->getParent()->hasVar($keyword['match'][1]);
+                    if (!$hasVar) {
                         throw new Exception('Var (' . $keyword['match'][1] . ') not recognized');
                     }
+                    $text .= $line->getParent()->getVar($keyword['match'][1]);
                     break;
                 default:
                     throw new Exception('Unrecognized keyword (' . $keyword['token'] . ')');
@@ -191,19 +199,25 @@ class Parser
     }
 
     /**
-     * replace the variables within the tasks
+     * parse a supblock of a line, like in sin(xy) or $a=xy
      *
-     * @param       $tasks
-     * @param array $vars
+     * @param $string
+     * @param $parent
      *
-     * @return void
+     * @return string
      */
-    static protected function replaceVars($tasks, $vars = array())
+    static protected function parseLineBlock($string, $parent)
     {
-        foreach ($tasks as $task) {
-            foreach ($vars as $name => $value) {
-                $task->setMath(str_replace($name, $value, $task->getMath()));
-            }
+        $line = new Line();
+        $line->setParent($parent);
+
+        $keywords = Lexer::run(array(1 => $string));
+        $lastKeyword = end($keywords);
+        if ($lastKeyword['token'] == 'T_NEWLINE') {
+            array_pop($keywords);
         }
+        $line->setKeywords($keywords);
+
+        return self::parseLine($line);
     }
 }
