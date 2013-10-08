@@ -196,4 +196,42 @@ class package_app_server
         source  => '/vagrant/resources/app/usr/bin/selenium-stop',
         mode    => '0755'
     }
+
+
+
+  # Change user / group
+  exec { "Add-ppa" :
+      command => "/usr/bin/add-apt-repository ppa:chris-lea/node.js -y",
+      creates  => "/etc/apt/sources.list.d/chris-lea-node_js-precise.list",
+      notify => Exec['Ppa-update']
+  }
+
+  exec { "Ppa-update" :
+    command => "/usr/bin/apt-get update"
+  }
+
+  package
+  {
+    'nodejs':
+        ensure  => present,
+        require => Exec['Add-ppa']
+  }
+
+  exec { "Install-npm" :
+    command => "/usr/bin/curl https://npmjs.org/install.sh | sh",
+    require => [ Package["nodejs"] , Package["curl"] ],
+    creates => "/usr/bin/npm"
+  }
+
+  package
+  {
+    'curl':
+        ensure  => present
+  }
+
+  exec { "Install-Less" :
+    command => "/usr/bin/npm install less -g",
+    require => Exec["Install-npm"],
+    creates => "/usr/lib/node_modules/less/bin/lessc"
+  }
 }
