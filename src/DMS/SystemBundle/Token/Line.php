@@ -14,6 +14,31 @@ namespace DMS\SystemBundle\Token;
 class Line
 {
     /**
+     * @var int
+     */
+    protected $lineNumber;
+
+    /**
+     * @param mixed $lineNumber
+     *
+     * @return Line
+     */
+    public function setLineNumber($lineNumber)
+    {
+        $this->lineNumber = $lineNumber;
+
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getLineNumber()
+    {
+        return $this->lineNumber;
+    }
+
+    /**
      * @var Collection
      */
     protected $parent;

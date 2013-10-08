@@ -19,19 +19,31 @@ class Lexer
 {
     protected static $terminals = array(
         '/^(\ )+/'                                  =>      'T_WHITESPACE',
-        '/^([0-9])+.([0-9])+/'                      =>      'T_VALUES',
-        '/^sin\((.+)\)/'                            =>      'T_SIN',
-        '/^cos\((.+)\)/'                            =>      'T_COS',
-        '/^tan\((.+)\)/'                            =>      'T_TAN',
+        '/^([0-9])+(.([0-9])+)?/'                   =>      'T_VALUES',
+        // Trigo
+        '/^sin\((.+)\)/U'                           =>      'T_SIN',
+        '/^cos\((.+)\)/U'                           =>      'T_COS',
+        '/^tan\((.+)\)/U'                           =>      'T_TAN',
+        // Special
+        '#^sqrt\((.+)(,(.+))?\)#U'                  =>      'T_SQRT',
+        '#^ln\((.+)\)#U'                            =>      'T_LN',
+        '#^log\((.+)(,(.+))?\)#U'                   =>      'T_LOG',
+        // Controlstructures
         '#^for\((\$[A-Za-z]);([0-9]+);([0-9]+)\)#'  =>      'T_FOR_LOOP',
+        // Keywords
         '#^Math.PI#'                                =>      'T_MATH_KEYWORD_PI',
-        '/^(\$[A-Za-z])+=(.*)$/'                    =>      'T_VAR_SET',
+        '#^Math.E#'                                 =>      'T_MATH_KEYWORD_E',
+        // Variables
+        '/^(\$[A-Za-z])+ ?=(.*)$/U'                  =>      'T_VAR_SET',
         '/^(\$[A-Za-z])+/'                          =>      'T_VAR',
+        // Math operators
         '/^\+/'                                     =>      'T_PLUS',
         '/^\-/'                                     =>      'T_MINUS',
         '/^\*/'                                     =>      'T_MULTIPLICATION',
         '/^\:/'                                     =>      'T_DIVISION',
         '/^\//'                                     =>      'T_DIVISION',
+        '/^\^\((.+)\)/'                             =>      'T_POW',
+        // Logic
         '#^\(#'                                     =>      'T_BLOCK',
         '#^\)#'                                     =>      'T_END_BLOCK',
         '#^\{#'                                     =>      'T_CURL_BLOCK',

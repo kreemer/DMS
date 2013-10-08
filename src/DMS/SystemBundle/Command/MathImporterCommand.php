@@ -58,6 +58,9 @@ class MathImporterCommand extends ContainerAwareCommand
         } catch(Parser\Exception $e) {
             $output->writeln('<error>there was an error while parsing :(</error>');
             $output->writeln('<error>' . $e->getMessage() . ' (' . $e->getFile() . ':' . $e->getLine() . ')</error>');
+            if ($input->getOption('verbose')) {
+                $output->writeln($e->getTraceAsString());
+            }
             return;
         }
 

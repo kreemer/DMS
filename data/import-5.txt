@@ -1,0 +1,13 @@
+sqrt(4)
+sqrt(9, 3)
+$a = 2
+sqrt(81, $a)
+$b = 81
+sqrt($b, $a)
+sqrt($b)
+$a^(4)
+2^($a)
+$a^($b-sin(Math.PI)+Math.E-ln(Math.E)+log($b+1))
+log(81,$a)
+log(81)
+ln(3)

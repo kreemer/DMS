@@ -109,8 +109,8 @@ class Parser
                             $keyword['match'][1], $keyword['match'][2], $keyword['match'][3], 1
                         )
                     );
-                    $line = new Line();
-                    $block->addLine($line);
+                    $line = $block->addLine(new Line());
+                    $line->setLineNumber($keyword['line']);
                     break;
                 case 'T_CURL_BLOCK':
                     if (!$block instanceof Loop) {
@@ -123,6 +123,7 @@ class Parser
                     }
                     $block = $block->getParent();
                     $line = $block->addLine(new Line());
+                    $line->setLineNumber($keyword['line']);
                     break;
                 case 'T_NEWLINE':
                     $line = $block->addLine(new Line());
@@ -168,19 +169,42 @@ class Parser
                 case 'T_MATH_KEYWORD_PI':
                     $text .= 'Pi';
                     break;
+                case 'T_MATH_KEYWORD_E':
+                    $text .= 'E';
+                    break;
                 case 'T_SIN':
-                    $text .= 'sin(' . self::parseLineBlock($keyword['match'][1], $line->getParent()) . ')';
+                    $text .= 'sin(' . self::parseLineBlock($keyword['match'][1], $line) . ')';
                     break;
                 case 'T_COS':
-                    $text .= 'cos(' . self::parseLineBlock($keyword['match'][1], $line->getParent()) . ')';
+                    $text .= 'cos(' . self::parseLineBlock($keyword['match'][1], $line) . ')';
                     break;
                 case 'T_TAN':
-                    $text .= 'tan(' . self::parseLineBlock($keyword['match'][1], $line->getParent()) . ')';
+                    $text .= 'tan(' . self::parseLineBlock($keyword['match'][1], $line) . ')';
+                    break;
+                case 'T_POW':
+                    $text .= '^(' . self::parseLineBlock($keyword['match'][1], $line) . ')';
+                    break;
+                case 'T_SQRT':
+                    $text .= 'sqrt(' . self::parseLineBlock($keyword['match'][1], $line);
+                    if (isset($keyword['match'][3])) {
+                        $text .= ',' . self::parseLineBlock($keyword['match'][3], $line);
+                    }
+                    $text .= ')';
+                    break;
+                case 'T_LN':
+                    $text .= 'ln(' . self::parseLineBlock($keyword['match'][1], $line) . ')';
+                    break;
+                case 'T_LOG':
+                    $text .= 'log(' . self::parseLineBlock($keyword['match'][1], $line);
+                    if (isset($keyword['match'][3])) {
+                        $text .= ',' . self::parseLineBlock($keyword['match'][3], $line);
+                    }
+                    $text .= ')';
                     break;
                 case 'T_VAR_SET':
                     $line->getParent()->setVar(
                         $keyword['match'][1],
-                        self::parseLineBlock($keyword['match'][2], $line->getParent())
+                        self::parseLineBlock($keyword['match'][2], $line)
                     );
                     break;
                 case 'T_VAR':
@@ -202,16 +226,25 @@ class Parser
      * parse a supblock of a line, like in sin(xy) or $a=xy
      *
      * @param $string
-     * @param $parent
+     * @param Line $orgLine
      *
      * @return string
      */
-    static protected function parseLineBlock($string, $parent)
+    static protected function parseLineBlock($string, Line $orgLine)
     {
+        $parent = $orgLine->getParent();
         $line = new Line();
         $line->setParent($parent);
-
-        $keywords = Lexer::run(array(1 => $string));
+        try {
+            $keywords = Lexer::run(array(1 => $string));
+        } catch (Exception $e) {
+            $ex = new Exception(
+                'There as a parsing error in a subBlock [' . $string . ']',
+                0,
+                $e
+            );
+            throw $ex;
+        }
         $lastKeyword = end($keywords);
         if ($lastKeyword['token'] == 'T_NEWLINE') {
             array_pop($keywords);
