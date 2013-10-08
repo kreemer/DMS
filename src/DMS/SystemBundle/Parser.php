@@ -167,7 +167,7 @@ class Parser
                     $text .= '-';
                     break;
                 case 'T_MATH_KEYWORD_PI':
-                    $text .= 'Pi';
+                    $text .= 'PI';
                     break;
                 case 'T_MATH_KEYWORD_E':
                     $text .= 'E';
