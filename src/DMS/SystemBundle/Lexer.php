@@ -19,10 +19,10 @@ class Lexer
 {
     protected static $terminals = array(
         '/^(\ )+/'                                  =>      'T_WHITESPACE',
-        '/^([0-9])+/'                               =>      'T_VALUES',
+        '/^([0-9])+.([0-9])+/'                      =>      'T_VALUES',
         '/^sin\((.+)\)/'                            =>      'T_SIN',
-        '/^cos\((A-Za-z0-9)+\)/'                    =>      'T_COS',
-        '/^tan\((A-Za-z0-9)+\)/'                    =>      'T_TAN',
+        '/^cos\((.+)\)/'                            =>      'T_COS',
+        '/^tan\((.+)\)/'                            =>      'T_TAN',
         '#^for\((\$[A-Za-z]);([0-9]+);([0-9]+)\)#'  =>      'T_FOR_LOOP',
         '#^Math.PI#'                                =>      'T_MATH_KEYWORD_PI',
         '/^(\$[A-Za-z])+=(.*)$/'                    =>      'T_VAR_SET',
