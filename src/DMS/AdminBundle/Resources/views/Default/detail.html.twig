@@ -1,0 +1,82 @@
+{% extends 'DMSAdminBundle::template.html.twig' %}
+
+{% block body %}
+
+
+
+    <div class="container">
+        <h1>Equation "{{ equation.title }}"</h1>
+
+        <div class="row">
+
+            <div class="col-lg-4">
+                <h2>Pure data</h2>
+                <table border="1">
+                    <tr>
+                        <th>Task Nr</th>
+                        <th>Step</th>
+                        <th>Math</th>
+                        <th>Calculated</th>
+                        <th>Results</th>
+                    </tr>
+                    {% for task in equation.tasks %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td>{{ task.step }}</td>
+                            <td>{{ task.math }}</td>
+                            <td>{{ task.calculated }}</td>
+                            <td>
+
+                                {% if task.results|length > 0 %}
+                                    <table border="1">
+                                        <tr>
+                                            <th>Result</th>
+                                            <th><span title="Duration in miliseconds">Duration</span></th>
+                                            <th>IP</th>
+                                            <th>Browser</th>
+                                        </tr>
+                                        {% for result in task.results %}
+                                            <tr>
+                                                <td>{{ result.result }}</td>
+                                                <td>{{ result.duration }}</td>
+                                                <td>{{ result.ip }}</td>
+                                                <td><span title="{{ result.browser }}">{{ result.browser[:20] }}...</span></td>
+                                            </tr>
+
+                                        {% endfor %}
+                                    </table>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+
+            <div class="col-lg-4">
+                <h2>Plot</h2>
+                <div id="chartdiv" style="height:400px;width:300px; "></div>
+            </div>
+        </div>
+
+        <!-- Site footer -->
+        <div class="footer">
+            <p>&copy; DMS 2013</p>
+        </div>
+    </div> <!-- /container -->
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script type="text/javascript">
+    $.jqplot(
+            'chartdiv',
+            [[
+                {{ resultsAsJS }}
+            ]],
+            {
+                seriesDefaults: { showLine: false },
+                axes: { xaxis: { min: 0 }}
+            }
+    );
+    </script>
+{% endblock %}

@@ -19,9 +19,14 @@ class ResultController extends Controller
         }
         $em = $this->getDoctrine()->getManager();
         $task = $em->getRepository('DMSSystemBundle:Task')->find($_POST['id']);
+
         $result = new Result();
         $result->setTask($task);
         $result->setResult($_POST['data']);
+        $result->setDuration($_POST['duration']);
+        $result->setIp($this->getRequest()->getClientIp());
+        $result->setBrowser($_SERVER['HTTP_USER_AGENT']);
+
         $em->persist($result);
         $task->setCalculated(true);
         $em->persist($task);

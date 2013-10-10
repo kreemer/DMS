@@ -1,0 +1,39 @@
+{% extends 'DMSAdminBundle::template.html.twig' %}
+
+{% block body %}
+
+
+
+    <div class="container">
+        <h1>Administration</h1>
+
+        <div class="row">
+            <div class="col-lg-4">
+                <h2>Equations</h2>
+                <table>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                    </tr>
+                    {% for equation in equations%}
+                        <tr>
+                            <td><a href="{{ path('equation_detail', {id: equation.id}) }}">{{ equation.id }}</a></td>
+                            <td>{{ equation.title }}</td>
+                        </tr>
+                    {% endfor %}
+
+                </table>
+            </div>
+        </div>
+
+        <!-- Site footer -->
+        <div class="footer">
+            <p>&copy; DMS 2013</p>
+        </div>
+
+
+
+    </div> <!-- /container -->
+
+
+{% endblock %}

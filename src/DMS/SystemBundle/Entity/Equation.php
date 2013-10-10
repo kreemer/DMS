@@ -30,6 +30,13 @@ class Equation
     private $file;
 
     /**
+     * @var string
+     *
+     * @ORM\Column(name="title", type="string", length=50)
+     */
+    private $title;
+
+    /**
      * @var ArrayCollection
      *
      * @ORM\OneToMany(targetEntity="Task", mappedBy="equation")
@@ -75,5 +82,33 @@ class Equation
     public function getFile()
     {
         return $this->file;
+    }
+
+    /**
+     * @param string $title
+     *
+     * @return Equation
+     */
+    public function setTitle($title)
+    {
+        $this->title = $title;
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getTitle()
+    {
+        return $this->title;
+    }
+
+    /**
+     * @return \Doctrine\Common\Collections\ArrayCollection
+     */
+    public function getTasks()
+    {
+        return $this->tasks;
     }
 }

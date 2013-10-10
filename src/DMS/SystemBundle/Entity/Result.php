@@ -36,6 +36,28 @@ class Result
     private $result;
 
     /**
+     * @var string
+     *
+     * @ORM\Column(name="ip", type="string", length=255)
+     */
+    private $ip;
+
+    /**
+     * Duration in miliseconds
+     * @var int
+     *
+     * @ORM\Column(name="duration", type="integer")
+     */
+    private $duration;
+
+    /**
+     * @var string
+     *
+     * @ORM\Column(name="browser", type="string", length=255)
+     */
+    private $browser;
+
+    /**
      * Get id
      *
      * @return integer
@@ -83,5 +105,65 @@ class Result
     public function getTask()
     {
         return $this->task;
+    }
+
+    /**
+     * @param string $browser
+     *
+     * @return Result
+     */
+    public function setBrowser($browser)
+    {
+        $this->browser = $browser;
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getBrowser()
+    {
+        return $this->browser;
+    }
+
+    /**
+     * @param int $duration
+     *
+     * @return Result
+     */
+    public function setDuration($duration)
+    {
+        $this->duration = $duration;
+
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getDuration()
+    {
+        return $this->duration;
+    }
+
+    /**
+     * @param string $ip
+     *
+     * @return Result
+     */
+    public function setIp($ip)
+    {
+        $this->ip = $ip;
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getIp()
+    {
+        return $this->ip;
     }
 }

@@ -31,6 +31,11 @@ class MathImporterCommand extends ContainerAwareCommand
                 InputArgument::REQUIRED,
                 'path to the file which will be imported'
             )
+            ->addArgument(
+                'name',
+                InputArgument::OPTIONAL,
+                'give the imported mathematical equation a name'
+            )
             ->addOption('dry-run')
         ;
     }
@@ -39,6 +44,8 @@ class MathImporterCommand extends ContainerAwareCommand
     {
         $path = $input->getArgument('path');
         $dryrun = $input->getOption('dry-run');
+        $name = $input->getArgument('name') ?: $path;
+
         if (!file_exists($path)) {
             throw new \Exception('File not there');
         }
@@ -49,7 +56,6 @@ class MathImporterCommand extends ContainerAwareCommand
             $output->writeln('start import of "' . $path . '"');
         }
 
-        $tasks = array();
         $content = file_get_contents($path);
         $lines = explode(PHP_EOL, $content);
         try {
@@ -78,8 +84,10 @@ class MathImporterCommand extends ContainerAwareCommand
         $em = $this->getContainer()->get('doctrine')->getManager();
         $equation = new Equation();
         $equation->setFile($path);
+        $equation->setTitle($name);
         !$dryrun ? $em->persist($equation) : null;
         foreach ($tasks as $task) {
+            $task->setEquation($equation);
             !$dryrun ? $em->persist($task) : null;
         }
         !$dryrun ? $em->flush() : null;

@@ -218,7 +218,7 @@ class package_app_server
   }
 
   exec { "Install-npm" :
-    command => "/usr/bin/curl https://npmjs.org/install.sh | sh",
+    command => "/usr/bin/curl https://npmjs.org/install.sh | /bin/sh",
     require => [ Package["nodejs"] , Package["curl"] ],
     creates => "/usr/bin/npm"
   }

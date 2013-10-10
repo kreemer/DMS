@@ -160,4 +160,12 @@ class Task
     {
         return $this->calculated;
     }
+
+    /**
+     * @return \Doctrine\Common\Collections\ArrayCollection
+     */
+    public function getResults()
+    {
+        return $this->results;
+    }
 }

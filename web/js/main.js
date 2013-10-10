@@ -8,13 +8,11 @@ function getInstructions() {
     var route = Routing.generate('instruction');
     $.getJSON(route, function(data) {
         console.log("Load was performed.");
+        var start = new Date();
         var result = math.eval(data.math);
-        sendResult(result, data.step, data.id);
+        var duration = new Date() - start;
+        var resultObj = { "step": data.step, "data": result, "success": true, "id": data.id, "duration": duration }
+        $.post(Routing.generate('result'), resultObj);
         window.setTimeout(getInstructions, 500);
     });
-}
-function sendResult(data, step, id) {
-    var result = { "step": step, "data": data, "success": true, "id": id }
-    console.log(result);
-    $.post(Routing.generate('result'), result);
 }

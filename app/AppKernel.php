@@ -20,6 +20,7 @@ class AppKernel extends Kernel
             new FOS\JsRoutingBundle\FOSJsRoutingBundle(),
             new DMS\SystemBundle\DMSSystemBundle(),
             new Mopa\Bundle\BootstrapBundle\MopaBootstrapBundle(),
+            new DMS\AdminBundle\DMSAdminBundle(),
         );
 
         if (in_array($this->getEnvironment(), array('dev', 'test'))) {

@@ -1,3 +1,8 @@
+dms_admin:
+    resource: "@DMSAdminBundle/Controller/"
+    type:     annotation
+    prefix:   /admin
+
 dms_web:
     resource: "@DMSWebBundle/Controller/"
     type:     annotation
