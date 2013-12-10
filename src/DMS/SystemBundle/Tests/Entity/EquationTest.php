@@ -12,6 +12,7 @@ namespace DMS\SystemBundle\Tests\Entity;
 
 
 use DMS\SystemBundle\Entity\Equation;
+use Doctrine\Common\Collections\ArrayCollection;
 
 class EquationTest extends \PHPUnit_Framework_TestCase
 {
@@ -37,6 +38,38 @@ class EquationTest extends \PHPUnit_Framework_TestCase
      */
     public function getId()
     {
-        $this->object->getId();
+        $this->assertNull($this->object->getId());
+    }
+
+    /**
+     * @test
+     *
+     * @return void
+     */
+    public function getTitle()
+    {
+        $this->object->setTitle('test');
+        $this->assertEquals('test', $this->object->getTitle());
+    }
+
+    /**
+     * @test
+     *
+     * @return void
+     */
+    public function getFile()
+    {
+        $this->object->setFile('/tmp/test');
+        $this->assertEquals('/tmp/test', $this->object->getFile());
+    }
+
+    /**
+     * @test
+     *
+     * @return void
+     */
+    public function getTasks()
+    {
+        $this->assertTrue($this->object->getTasks() instanceof ArrayCollection);
     }
 }
