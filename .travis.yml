@@ -6,7 +6,9 @@ php:
 
 before_script: composer install -n
 
-script: phpunit -c app
+script:
+  - mkdir -p build/logs
+  - phpunit -c app
 
 after_script:
   - php vendor/bin/coveralls
