@@ -1,5 +1,7 @@
 sqrt(4)
 sqrt(9, 3)
+sin(90)
+sin(Math.PI * 3 - $a)
 $a = 2
 sqrt(81, $a)
 $b = 81
