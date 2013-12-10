@@ -23,6 +23,9 @@
         "mopa/bootstrap-bundle": "dev-master",
         "twbs/bootstrap": "v3.0.0"
     },
+    "require-dev": {
+        "satooshi/php-coveralls": "dev-master"
+    },
     "scripts": {
         "post-install-cmd": [
             "Incenteev\\ParameterHandler\\ScriptHandler::buildParameters",
