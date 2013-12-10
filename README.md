@@ -1,6 +1,9 @@
 DMS
 ===
 
+[![Build Status](https://travis-ci.org/kreemer/DMS.png?branch=master)](https://travis-ci.org/kreemer/DMS)
+
+
 Dieses Projekt ist nur ein Proof-Of-Concept um zu zeigen, dass Mathematische Berechnungen auch mittels Browser
 durchgeführt werden können. Dabei ist es das Ziel, dass man:
 
